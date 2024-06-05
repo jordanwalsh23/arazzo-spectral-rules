@@ -1,7 +1,9 @@
-# arazzo-spectral-rules
+# WIP: arazzo-spectral-rules
 The Arazzo Specification v1.0.0 has now been published [here](https://spec.openapis.org/arazzo/latest.html).
 
-This list of [Spectral](https://github.com/stoplightio/spectral) rules can be run to help ensure that documents created adhere to the specification.
+This is a list of [Spectral](https://github.com/stoplightio/spectral) rules that I have created that can be run to help ensure that documents created adhere to the specification.
+
+**NOTE: This is a work in progress and should not be considered as a full and complete list of validations.**
 
 ## Quick Start
 
