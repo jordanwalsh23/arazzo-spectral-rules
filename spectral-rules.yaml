@@ -1,0 +1,402 @@
+documentationUrl: https://github.com/OAI/Arazzo-Specification/blob/main/versions/1.0.0.md
+rules:
+  # Root Object Validations
+  arazzo-version-required:
+    description: Arazzo document version must be present.
+    message: "Arazzo document version must be present as the first line of an Arazzo document."
+    severity: error
+    given: $
+    then:
+      - field: $.arazzo
+        function: truthy
+  arazzo-info-required:
+    description: Arazzo info object must be present.
+    message: "Arazzo info object must be present."
+    severity: error
+    given: $
+    then:
+      - field: $.info
+        function: truthy
+  arazzo-source-descriptions-required:
+    description: Arazzo sourceDescriptions object must be present.
+    message: "Arazzo sourceDescriptions object must be present."
+    severity: error
+    given: $
+    then:
+      - field: $.sourceDescriptions
+        function: truthy
+  arazzo-workflows-required:
+    description: Arazzo workflows object must be present.
+    message: "Arazzo workflows object must be present."
+    severity: error
+    given: $
+    then:
+      - field: $.workflows
+        function: truthy
+  
+  # Root Object Field Validations
+  # Version
+  arazzo-root-version-format:
+    description: Arazzo document version should be 1.0.0.
+    message: "Arazzo document version should be 1.0.0."
+    severity: warn
+    given: $
+    then:
+      - field: $.arazzo
+        function: pattern
+        functionOptions:
+          match: "^1.0.0$"
+  
+  #Info
+  arazzo-root-info-validation:
+    description: Arazzo info object validations.
+    message: "{{error}}"
+    severity: error
+    given: $.info
+    then:
+      - field: $
+        function: schema
+        functionOptions:
+          schema:
+            type: object
+            required:
+            - title
+            - version
+            properties:
+              title:
+                type: string
+              summary:
+                type: string
+              description:
+                type: string
+              version:
+                type: string
+                pattern: "^[0-9]\\.[0-9]\\.[0-9]$"
+  
+  #Source Descriptions
+  arazzo-root-source-descriptions-validation:
+    description: Arazzo sourceDescriptions object validations.
+    message: "{{error}}"
+    severity: error
+    given: $.sourceDescriptions
+    then:
+      - field: $
+        function: schema
+        functionOptions:
+          dialect: "draft7"
+          schema:
+            type: array
+            items:
+              type: object
+              required:
+              - name
+              - url
+              properties:
+                name:
+                  type: string
+                url:
+                  type: string
+                  format: uri-reference
+                type:
+                  type: string
+                  enum: ["openapi","arazzo"]
+  
+  #Source Descriptions Name Validation
+  arazzo-source-descriptions-name-validation:
+    description: Name should be in the specified format.
+    message: "Name should be in the format [A-Za-z0-9_\\-]+"
+    severity: error
+    given: $.sourceDescriptions.*
+    then:
+      - field: $.name
+        function: pattern
+        functionOptions: 
+          match: "^[A-Za-z0-9_\\-]+$"
+
+  #Workflow
+  arazzo-root-workflow-validation:
+    description: Arazzo workflow object validations.
+    message: "{{error}}"
+    severity: error
+    given: $.workflows
+    then:
+      - field: $
+        function: schema
+        functionOptions:
+          dialect: "draft7"
+          schema:
+            type: array
+            items:
+              type: object
+              required:
+              - workflowId
+              - steps
+              properties:
+                workflowId:
+                  type: string
+                summary:
+                  type: string
+                description:
+                  type: string
+                inputs:
+                  type: object
+                dependsOn:
+                  type: string
+                steps:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                    - stepId
+                    - parameters
+                    properties:
+                      description:
+                        type: string
+                      stepId:
+                        type: string
+                      operationId:
+                        type: string
+                      operationPath:
+                        type: string
+                      workflowId:
+                        type: string
+                      parameters:
+                        type: array
+                        items:
+                          type: object
+                          required:
+                          - name
+                          - value
+                          properties:
+                            name:
+                              type: string
+                            in: 
+                              type: string
+                              enum: ["path", "query", "header", "cookie", "body"]
+                            value: {}
+                      requestBody:
+                        type: object
+                        properties:
+                          contentType:
+                            type: string
+                          payload: {}
+                      successCriteria: {}
+                      onSuccess:
+                        type: object
+                        required:
+                        - name
+                        - type
+                        properties:
+                          name:
+                            type: string
+                          type:
+                            type: string
+                            enum: ["end", "goto"]
+                          workflowId:
+                            type: string
+                          stepId:
+                            type: string
+                          criteria: {}
+                      onFailure:
+                        type: object
+                        required:
+                        - name
+                        - type
+                        properties:
+                          name:
+                            type: string
+                          type:
+                            type: string
+                            enum: ["end", "retry", "goto"]
+                          workflowId:
+                            type: string
+                          stepId:
+                            type: string
+                          retryAfter:
+                            type: number
+                            format: int32
+                          retryLimit:
+                            type: number
+                            format: int32
+                          criteria: {}
+                          outputs: {}
+                successActions:
+                  type: object
+                  required:
+                  - name
+                  - type
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
+                      enum: ["end", "goto"]
+                    workflowId:
+                      type: string
+                    stepId:
+                      type: string
+                    criteria: {}
+                failureActions:
+                  type: object
+                  required:
+                  - name
+                  - type
+                  properties:
+                    name:
+                      type: string
+                    type:
+                      type: string
+                      enum: ["end", "retry", "goto"]
+                    workflowId:
+                      type: string
+                    stepId:
+                      type: string
+                    retryAfter:
+                      type: number
+                      format: int32
+                    retryLimit:
+                      type: integer
+                    criteria: {}
+                    outputs: {}
+                outputs: {}
+                parameters: 
+                  type: object
+                  required:
+                  - name
+                  - value
+                  properties:
+                    name:
+                      type: string
+                    in: 
+                      type: string
+                      enum: ["path", "query", "header", "cookie", "body"]
+                    value: {}
+  
+  #Workflow WorkflowId Validation
+  arazzo-workflow-workflowId-validation:
+    description: workflowId should be in the specified format.
+    message: "workflowId should be in the format [A-Za-z0-9_\\-]+"
+    severity: error
+    given: $.workflows.*
+    then:
+      - field: $.workflowId
+        function: pattern
+        functionOptions: 
+          match: "^[A-Za-z0-9_\\-]+$"
+  
+  #Workflow Outputs Validation
+  arazzo-workflow-outputs-validation:
+    description: Outputs should be in the specified format.
+    message: "Each output key value pair must be in the format ^[a-zA-Z0-9\\.\\-_]+$"
+    severity: error
+    given: $.workflows.*.outputs.*~
+    then:
+      - field: $
+        function: pattern
+        functionOptions: 
+          match: "^[a-zA-Z0-9\\.\\-_]+$"
+  
+  #Steps
+  #Step ID Validation
+  arazzo-workflow-steps-stepId-validation:
+    description: StepId should be in the specified format.
+    message: "StepId is recommended to be in the format [A-Za-z0-9_\\-]+"
+    severity: warn
+    given: $.workflows.*.steps.*[stepId]
+    then:
+      - field: $
+        function: pattern
+        functionOptions: 
+          match: "^[A-Za-z0-9_\\-]+$"
+  
+  #Step Outputs Validation
+  arazzo-workflow-steps-outputs-validation:
+    description: Outputs should be in the specified format.
+    message: "Each output key value pair must be in the format ^[a-zA-Z0-9\\.\\-_]+$"
+    severity: error
+    given: $.workflows.*.steps.*.outputs.*~
+    then:
+      - field: $
+        function: pattern
+        functionOptions: 
+          match: "^[a-zA-Z0-9\\.\\-_]+$"
+  
+  #Criteria Validation
+  arazzo-criteria-schema-validation:
+    description: Criteria fields should be in the specified format.
+    message: "Criteria fields should be in the specified format."
+    severity: error
+    given:
+      - $.workflows.*.steps.*.successCriteria.*
+    then:
+      - field: $
+        function: schema
+        functionOptions: 
+          dialect: "draft7"
+          schema:
+            type: object
+            required:
+              - condition
+            properties:
+              context: {}
+              condition:
+                type: string
+              type: {}
+  
+  #JSONPath Criteria Validation
+  arazzo-criteria-jsonpath-validation:
+    description: JSONPath criteria validation.
+    message: "JSONPath type must have version defined with value 'draft-goessner-dispatch-jsonpath-00'"
+    severity: error
+    given:
+      - $.workflows.*.steps.*.successCriteria.[?(@.type == "jsonpath")]
+    then:
+      - field: $.version
+        function: truthy
+      - field: $.version
+        function: pattern
+        functionOptions:
+          match: "^draft-goessner-dispatch-jsonpath-00$"
+  
+  #XPath Criteria Validation
+  arazzo-criteria-xpath-validation:
+    description: XPath criteria validation.
+    message: "XPath type must have version defined with a valid value."
+    severity: error
+    given:
+      - $.workflows.*.steps.*.successCriteria.[?(@.type == "xpath")]
+    then:
+      - field: $.version
+        function: truthy
+      - field: $.version
+        function: enumeration
+        functionOptions:
+          values:
+          - xpath-30
+          - xpath-20
+          - xpath-10
+
+  #Components
+  arazzo-root-components-validation:
+    description: Arazzo components object validations.
+    message: "{{error}}"
+    severity: error
+    given: $.components
+    then:
+      - field: $
+        function: schema
+        functionOptions:
+          dialect: "draft7"
+          schema:
+            type: object
+            properties:
+              inputs: {}
+              parameters: {}
+              successActions: {}
+              failureActions: {}
+        
+                          
+                      
+                      
+          
+  
